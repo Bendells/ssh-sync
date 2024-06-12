@@ -1,9 +1,9 @@
 .PHONY: install configure uninstall
 
 install:
-	@cp sync-folders.sh /usr/bin/ssh-sync-folders
-	@chmod +x /usr/bin/ssh-sync-folders
-	@echo "Installed ssh-sync-folders to /usr/bin/"
+	@cp sync-folders.sh /usr/local/ssh-sync-folders
+	@chmod +x /usr/local/ssh-sync-folders
+	@echo "Installed ssh-sync-folders to /usr/local/"
 
 configure:
 	@read -p "Enter local directory (default: current directory): " local_dir; \
@@ -22,6 +22,6 @@ configure:
 	echo "Configuration updated. Restart your terminal to apply the changes."
 
 uninstall:
-	@rm -f /usr/bin/ssh-sync-folders
-	@echo "Uninstalled ssh-sync-folders from /usr/bin/"
+	@rm -f /usr/local/ssh-sync-folders
+	@echo "Uninstalled ssh-sync-folders from /usr/local/"
 

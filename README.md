@@ -13,12 +13,16 @@ ssh-sync-folders [OPTIONS]
 
 ### Options
 
-- `-l`, --local-dir=DIR: Local directory to be synced (default: current directory)
-- `-u`, --remote-user=USER: Remote SSH user
-- `-p`, --remote-pass=PASSWORD: Remote SSH password (optional)
-- `-h`, --remote-host=HOST: Remote SSH host
-- `-d`, --remote-dir=DIR: Remote directory to sync to (default: /shared)
-- `-e`, --exclude=PATTERNS: Comma-separated list of file/folder patterns to exclude
+```bash
+
+  -l [DIR]           Local directory to be synced (default: current directory)
+  -u [USER]          Remote SSH user
+  -p [PASSWORD]      Remote SSH password (optional)
+  -h [HOST]          Remote SSH host
+  -d [DIR]           Remote directory to sync to (default: /shared)
+  -e [PATTERNS]      Comma-separated list of file/folder patterns to exclude
+  --help             Show this help message and exit
+```
 
 To display the help message, run the script with the `--help` option:
 
@@ -41,8 +45,8 @@ Configure the following environment variables before running the script, unless 
 ## Dependencies
 
 - `rsync`
-- `inotify-tools`
-- `sshpass` (optional, required if using a remote password)
+- `fswatch`
+- `sshpass`
 
 ## Installation
 
@@ -54,7 +58,7 @@ To install the script, simply run:
 make install
 ```
 
-This will copy the script to `/usr/bin` and make it executable. 
+This will copy the script to `/usr/local` and make it executable. 
 
 To uninstall the script, run:
 

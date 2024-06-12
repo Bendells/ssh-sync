@@ -1,9 +1,12 @@
 #!/bin/bash
 
 sync_directories() {
+  echo "$(date +%s) : Attempting directory sync"
   if [ -z "${REMOTE_PASS}" ]; then
+    echo "Doing it through rsync"
     rsync -avz --delete --exclude-from="${EXCLUDE_FILE}" -e "ssh" "$LOCAL_DIR" "${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_DIR}"
   else
+    echo "Doing it through sshpass"
     sshpass -p "${REMOTE_PASS}" rsync -avz --delete --exclude-from="${EXCLUDE_FILE}" -e "ssh" "$LOCAL_DIR" "${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_DIR}"
   fi
 }
@@ -13,44 +16,44 @@ show_help() {
 Usage: ssh-sync-folders [OPTIONS]
 
 Options:
-  -l, --local-dir=DIR           Local directory to be synced (default: current directory)
-  -u, --remote-user=USER        Remote SSH user
-  -p, --remote-pass=PASSWORD    Remote SSH password (optional)
-  -h, --remote-host=HOST        Remote SSH host
-  -d, --remote-dir=DIR          Remote directory to sync to (default: /shared)
-  -e, --exclude=PATTERNS        Comma-separated list of file/folder patterns to exclude
-  --help                        Show this help message and exit
+  -l [DIR]           Local directory to be synced (default: current directory)
+  -u [USER]          Remote SSH user
+  -p [PASSWORD]      Remote SSH password (optional)
+  -h [HOST]          Remote SSH host
+  -d [DIR]           Remote directory to sync to (default: /shared)
+  -e [PATTERNS]      Comma-separated list of file/folder patterns to exclude
+  --help             Show this help message and exit
 
 EOF
 }
 
-while [ "$#" -gt 0 ]; do
-  case "$1" in
-    -l|--local-dir=*)
-      LOCAL_DIR="${1#*=}"
-      shift
+while getopts ":l:u:p:h:d:e:" arg; do
+  case "${arg}" in
+    l)
+      LOCAL_DIR=${OPTARG}
+      echo "LOCAL_DIR is ${LOCAL_DIR}"
       ;;
-    -u|--remote-user=*)
-      REMOTE_USER="${1#*=}"
-      shift
+    u)
+      REMOTE_USER=${OPTARG}
+      echo "REMOTE_USER is ${REMOTE_USER}"
       ;;
-    -p|--remote-pass=*)
-      REMOTE_PASS="${1#*=}"
-      shift
+    p)
+      REMOTE_PASS=${OPTARG}
+      echo "REMOTE_PASS is ${REMOTE_PASS}"
       ;;
-    -h|--remote-host=*)
-      REMOTE_HOST="${1#*=}"
-      shift
+    h)
+      REMOTE_HOST=${OPTARG}
+      echo "REMOTE_HOST is ${REMOTE_HOST}"
       ;;
-    -d|--remote-dir=*)
-      REMOTE_DIR="${1#*=}"
-      shift
+    d)
+      REMOTE_DIR=${OPTARG}
+      echo "REMOTE_DIR is ${REMOTE_DIR}"
       ;;
-    -e|--exclude=*)
-      EXCLUDE_PATTERNS="${1#*=}"
-      shift
+    e)
+      EXCLUDE_PATTERNS=${OPTARG}
+      echo "EXCLUDE_PATTERNS is ${EXCLUDE_PATTERNS}"
       ;;
-    --help)
+    help)
       show_help
       exit 0
       ;;
@@ -59,7 +62,6 @@ while [ "$#" -gt 0 ]; do
       exit 1
       ;;
   esac
-  shift
 done
 
 LOCAL_DIR=${LOCAL_DIR:-${SSH_SYNC_LOCAL_DIR:-$PWD}}
@@ -91,8 +93,8 @@ fi
 echo "Initial sync done."
 
 echo "[ :::::::::::::::::::::::::::::::::::::::::::::::::::::::::: ]"
-while inotifywait -r -e modify,create,delete,move "${LOCAL_DIR}"; do
-  sync_directories
-done
+echo "[ ::::::::::::::::: Listening to Changes ::::::::::::::::::: ]"
+
+fswatch -0 -xnr -o "${LOCAL_DIR}" | xargs -0 -n1 -I '{}' sshpass -p "${REMOTE_PASS}" rsync -avz --delete --exclude-from="${EXCLUDE_FILE}" -e "ssh" "$LOCAL_DIR" "${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_DIR}"
 
 rm "${EXCLUDE_FILE}"
